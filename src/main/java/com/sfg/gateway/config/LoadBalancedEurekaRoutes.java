@@ -18,11 +18,18 @@ public class LoadBalancedEurekaRoutes {
                         .id("beer-service")
                 )
                 .route(r -> r.path("/api/v1/beer/*/inventory")
+                        .filters(f->f.circuitBreaker(c->c.setName("inventory_circuit_breaker")
+                                .setFallbackUri("forward:/inventory-failover")
+                                .setRouteId("inv-failover")
+                        ))
                         .uri("lb://inventory-service")
 
                 ).route(r -> r.path("/api/v1/customers/**")
                         .uri("lb://order-service")
                         .id("beer-Order-Service"))
+                .route(r -> r.path("/inventory-failover/**")
+                        .uri("lb://inventory-failover-service")
+                        .id("inventoryFailover"))
                 .build();
 
     }
